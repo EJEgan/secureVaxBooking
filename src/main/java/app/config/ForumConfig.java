@@ -29,6 +29,8 @@ public class ForumConfig {
                     "Jamal",
                     "040404041",
                     "Sample Address",
+                    "Ireland",
+                    "M",
                     "08711111",
                     "John.jamal@gmail.com",
                     "password"

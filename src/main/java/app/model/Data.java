@@ -1,7 +1,5 @@
 package app.model;
 
-import org.springframework.data.jpa.repository.Query;
-
 import javax.persistence.*;
 
 @Entity
@@ -11,7 +9,7 @@ public class Data {
     @Column
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Integer user_id;
 
     @Column
     private String dob;
@@ -23,11 +21,11 @@ public class Data {
     private String nationality;
 
     public Integer getId() {
-        return id;
+        return user_id;
     }
 
     public void setId(Integer id) {
-        this.id = id;
+        this.user_id = user_id;
     }
 
     public String getDob() {
@@ -57,7 +55,7 @@ public class Data {
     @Override
     public String toString() {
         return "data{" +
-                "id=" + id +
+                "id=" + user_id +
                 ", dob='" + dob + '\'' +
                 ", sex='" + sex + '\'' +
                 ", Nationality='" + nationality + '\'' +

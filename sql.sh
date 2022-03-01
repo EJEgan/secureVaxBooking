@@ -38,12 +38,21 @@ CREATE TABLE IF NOT EXISTS Users(ID INT NOT NULL
 ,PPSN VARCHAR(225) NOT NULL
 ,Address VARCHAR(225) NOT NULL
 ,Phone VARCHAR(225)
+,Nationality VARCHAR(255)
+,Sex VARCHAR(225)
 ,NextAppointmentID INT
 ,LastLogin VARCHAR(225)
 ,Password VARCHAR(225)
 ,PRIMARY KEY (ID)
 ,FOREIGN KEY (NextAppointmentID) REFERENCES Appointments(ID)
 );
+
+#Insert some dummy vals
+INSERT INTO Users(ID,DOB,Name,Surname,PPSN,Address,Nationality,Sex)
+Values
+(1,"19-05-1995","Hassan","Albujasim","130050N","54 Moylaragh Walk, Dublin", "Irish","Male")
+,(2,"12-05-1996","Kyle","John","130050N","53 Moylaragh Walk, Dublin", "British","Other")
+,(3,"12-05-1993","June","Mark","130052N","45 Moylaragh Walk, Dublin", "Irish","Female");
 
 CREATE TABLE IF NOT EXISTS `roles` (
   `role_id` bigint NOT NULL AUTO_INCREMENT,

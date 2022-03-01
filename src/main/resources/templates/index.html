@@ -3,6 +3,7 @@
 <head>
     <link th:href="@{/css/style.css}" rel="stylesheet" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta charset="ISO-8859-1" />
     <title>Home</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;900&display=swap" rel="stylesheet">
 </head>
@@ -49,28 +50,204 @@
             <h2 class="section-title">Our proofs</h2>
 
             <article class="proof">
-                <img th:src="@{/images/stats-general.png}" alt="" class="product__image">
+                <div id="third"></div>
                 <h3 class="proof__title"></h3>
                 <p class="product__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </p>
-                <a href="" class="btn">Read more</a>
             </article>
-
             <article class="proof">
-                <img th:src="@{/images/stats-sex.png}" alt="" class="product__image">
+                <div id="first"></div>
                 <h3 class="proof__title"></h3>
                 <p class="product__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </p>
-                <a href="" class="btn">Read more</a>
+                <button class="btn" id="plain">Plain</button>
+                <button class="btn" id="inverted">Inverted</button>
+                <button class="btn" id="polar">Polar</button>
             </article>
-
             <article class="proof">
-                <img th:src="@{/images/stats-bytype.png}" alt="" class="product__image">
+                <div id="second"></div>
                 <h3 class="proof__title"></h3>
                 <p class="product__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </p>
-                <a href="" class="btn">Read more</a>
             </article>
         </div>
     </section>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
 
+    <script th:inline="javascript">
+        $.ajax({
+            url: "sexchartdata",
+            success: function(result){
+                var categories = JSON.parse(result).categories;
+                var series = JSON.parse(result).series;
+                drawSexChart(categories,series);
+            }
+        })
+        $.ajax({
+            url:"nationchartdata",
+            success: function (result){
+                var nation = JSON.parse(result).nations;
+                var number = JSON.parse(result).numbers;
+                drawNationChart(nation,number);
+            }
+        })
+        $.ajax({
+            url:"agechartdata",
+            success: function (result){
+                var age = JSON.parse(result).age;
+                var number = JSON.parse(result).numbers;
+                // console.log(result);
+                drawAgeChart(age,number);
+            }
+        })
+        function drawSexChart(category, series) {
+            const chart = Highcharts.chart('first', {
+                title: {
+                    text: 'Chart Number With Sex'
+                },
+                subtitle: {
+                    text: 'Plain'
+                },
+                xAxis: {
+                    categories: category
+                },
+                series: [{
+                    type: 'column',
+                    colorByPoint: true,
+                    data: series,
+                    showInLegend: false
+                }]
+            });
+
+            document.getElementById('plain').addEventListener('click', () => {
+                chart.update({
+                    chart: {
+                        inverted: false,
+                        polar: false
+                    },
+                    subtitle: {
+                        text: 'Plain'
+                    }
+                });
+            });
+
+            document.getElementById('inverted').addEventListener('click', () => {
+                chart.update({
+                    chart: {
+                        inverted: true,
+                        polar: false
+                    },
+                    subtitle: {
+                        text: 'Inverted'
+                    }
+                });
+            });
+
+            document.getElementById('polar').addEventListener('click', () => {
+                chart.update({
+                    chart: {
+                        inverted: false,
+                        polar: true
+                    },
+                    subtitle: {
+                        text: 'Polar'
+                    }
+                });
+            });
+        }
+        function drawNationChart(nation,numbers) {
+
+            Highcharts.chart('second', {
+                chart: {
+                    type: 'bar'
+                },
+                title: {
+                    text: 'Nationality With Numbers'
+                },
+                xAxis: {
+                    categories: nation,
+                    title: {
+                        text: null
+                    }
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Population',
+                        align: 'high'
+                    },
+                    labels: {
+                        overflow: 'justify'
+                    }
+                },
+                tooltip: {
+                    valueSuffix: ' people'
+                },
+                plotOptions: {
+                    bar: {
+                        dataLabels: {
+                            enabled: true
+                        }
+                    },
+                    series: {
+                        color: '#F28F43FF'
+                    }
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'top',
+                    x: -40,
+                    y: 80,
+                    floating: true,
+                    borderWidth: 1,
+                    backgroundColor:
+                        Highcharts.defaultOptions.legend.backgroundColor || '#FFFFFF',
+                    shadow: true
+                },
+                credits: {
+                    enabled: false
+                },
+                series: [{
+                    name: '2021',
+                    data: numbers
+                }]
+                // , {
+                //     name: 'Year 1900',
+                //     data: [133, 156, 947, 408, 6]
+                // }, {
+                //     name: 'Year 2000',
+                //     data: [814, 841, 3714, 727, 31]
+                // }, {
+                //     name: 'Year 2016',
+                //     data: [1216, 1001, 4436, 738, 40]
+                // }]
+            });
+        }
+
+        function drawAgeChart(age,number){
+
+            Highcharts.chart('third', {
+                title: {
+                    text: 'Date of birth & number'
+                },
+                xAxis: {
+                    categories: age
+                },
+                plotOptions: {
+                    series: {
+                        color: '#FF0000'
+                    }
+                },
+
+                series: [{
+                    data: number
+                }]
+            });
+        }
+    </script>
 
 </main>
 

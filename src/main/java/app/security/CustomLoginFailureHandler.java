@@ -7,7 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
+import app.model.IncorrectLogin;
 import app.model.User;
+import app.repository.IncorrectLoginRepo;
 import app.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.LockedException;
@@ -22,6 +24,9 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private IncorrectLoginRepo incorrectLoginRepo;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
@@ -39,6 +44,16 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
                 if (user.getFailedAttempt() < UserService.MAX_FAILED_ATTEMPTS - 1) {
                     System.out.println("login attempt failed, less than 3 failed attempts");
                     userService.increaseFailedAttempts(user);
+
+                    // Check the ipAddress used for this request and lock it if need be
+                    String ipAddress = request.getRemoteAddr();
+                    System.out.println("ip is: " + ipAddress);
+
+                    // Check if this login has tried to login unsuccessfuly twice previously and lock it if so
+                    // otherwise just increment the number of attempts
+                    IncorrectLogin incorrectLogin = incorrectLoginRepo.findByip(ipAddress);
+                    if (incorrectLogin.getNumAttempts() > 2)
+
                 } else {
                     System.out.println("login attempt failed, more than 3 failed attempts");
                     userService.lock(user);

@@ -3,6 +3,7 @@ package app.model;
 public class IncorrectLogin {
     private String ipAddress;
     private int numAttempts;
+    private boolean ipNonLocked = true;
 
     public IncorrectLogin(String ipAddress) {
         // Whenever a new incorrect login is attempted record the ipAddress and instantiate the counter of incorrect
@@ -25,5 +26,13 @@ public class IncorrectLogin {
 
     public void setNumAttempts(int numAttempts) {
         this.numAttempts = numAttempts;
+    }
+
+    public boolean isIpNonLocked() {
+        return ipNonLocked;
+    }
+
+    public void setIpNonLocked(boolean ipNonLocked) {
+        this.ipNonLocked = ipNonLocked;
     }
 }

@@ -36,38 +36,67 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
         try {
             User user = userService.getByEmail(email);
 
-        System.out.println(user.getName());
-        System.out.println("entered login failure handler");
-        if (user != null) {
-            System.out.println("user is not null");
-            if (user.isAccountNonLocked()) {
-                if (user.getFailedAttempt() < UserService.MAX_FAILED_ATTEMPTS - 1) {
-                    System.out.println("login attempt failed, less than 3 failed attempts");
-                    userService.increaseFailedAttempts(user);
+            System.out.println(user.getName());
+            System.out.println("entered login failure handler");
+            if (user != null) {
+                System.out.println("user is not null");
+                if (user.isAccountNonLocked()) {
+                    if (user.getFailedAttempt() < UserService.MAX_FAILED_ATTEMPTS - 1) {
+                        System.out.println("login attempt failed, less than 3 failed attempts");
+                        userService.increaseFailedAttempts(user);
 
-                    // Check the ipAddress used for this request and lock it if need be
-                    String ipAddress = request.getRemoteAddr();
-                    System.out.println("ip is: " + ipAddress);
+                        // Check the ipAddress used for this request and lock it if need be
+                        String ipAddress = request.getRemoteAddr();
+                        System.out.println("ip is: " + ipAddress);
 
-                    // Check if this login has tried to login unsuccessfuly twice previously and lock it if so
-                    // otherwise just increment the number of attempts
-                    IncorrectLogin incorrectLogin = incorrectLoginRepo.findByip(ipAddress);
-                    if (incorrectLogin.getNumAttempts() > 2)
+                        // Check if this login has tried to login unsuccessfuly twice previously and lock it if so
+                        // otherwise just increment the number of attempts
+                        // This should maybe be wrapped in a try catch in case the db call fails and this code should
+                        // maybe be moved to another part of this class so it can still run even if the account being
+                        // accessed is already blocked
+                        IncorrectLogin incorrectLogin = incorrectLoginRepo.findByip(ipAddress);
+                        if (incorrectLogin == null) {
+                            // If this ip address hasn't attempted to login before then create a new entry in the db
+                            incorrectLogin = new IncorrectLogin(ipAddress);
+                            incorrectLoginRepo.save(incorrectLogin);
+                        }
 
-                } else {
-                    System.out.println("login attempt failed, more than 3 failed attempts");
-                    userService.lock(user);
-                    exception = new LockedException("Your account has been locked due to 3 failed attempts."
-                            + " It will be unlocked after 24 hours.");
+                        int numAttemptsIP = incorrectLogin.getNumAttempts();
+
+                        if (incorrectLogin.isIpNonLocked()) {
+
+                            if (numAttemptsIP < 2) {
+                                System.out.println("login attempt failed, less than 3 failed attempts from this ip");
+                                incorrectLoginRepo.updateFailedAttempts(numAttemptsIP + 1, ipAddress);
+                            }
+                            if (numAttemptsIP >= 2) {
+                                incorrectLoginRepo.updateFailedAttempts(numAttemptsIP + 1, ipAddress);
+                                incorrectLogin.setIpNonLocked(false);
+                                incorrectLoginRepo.save(incorrectLogin);
+                                exception = new LockedException("Your account has been locked due to 3 failed attempts from this ip");
+                            }
+                        } else {
+                            System.out.println("login attempt failed, ip address is already locked");
+                            userService.lock(user);
+                            exception = new LockedException("Your account has been locked due to 3 failed attempts."
+                                    + " It will be unlocked after 24 hours.");
+                        }
+
+
+                    } else {
+                        System.out.println("login attempt failed, more than 3 failed attempts");
+                        userService.lock(user);
+                        exception = new LockedException("Your account has been locked due to 3 failed attempts."
+                                + " It will be unlocked after 24 hours.");
+                    }
+                } else if (!user.isAccountNonLocked()) {
+                    System.out.println("Account is locked");
+                    if (userService.unlockWhenTimeExpired(user)) {
+                        exception = new LockedException("Your account has been unlocked. Please try to login again.");
+                    }
                 }
-            } else if (!user.isAccountNonLocked()) {
-                System.out.println("Account is locked");
-                if (userService.unlockWhenTimeExpired(user)) {
-                    exception = new LockedException("Your account has been unlocked. Please try to login again.");
-                }
+
             }
-
-        }
         } catch (Exception e) {
             throw new UsernameNotFoundException("username: " + email + " could not be found");
         }
